@@ -1,7 +1,7 @@
-var map = L.map('map').setView([55.7558, 37.6173], 13);
+var map = L.map('map').setView([55.7558, 37.6173], 5);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-var markerLayer = L.layerGroup().addTo(map);
-var markers = [];
+var markerGroup = L.layerGroup().addTo(map);
+var elements = new Map();
 
 function openUploadPopup() {
     $('#uploadPopup').modal('show');
@@ -10,6 +10,7 @@ function openUploadPopup() {
 function closeUploadPopup() {
     $('#uploadPopup').modal('hide');
 }
+
 $('#uploadForm').on('submit', function (e) {
     e.preventDefault();
     var formData = new FormData();
@@ -30,15 +31,19 @@ $('#uploadForm').on('submit', function (e) {
         }
     });
 });
-function setDefaultStyle(marker) {
-    marker.eachLayer(function (layer) {
+function setElementDefaultStyle(element) {
+    element.eachLayer(function (layer) {
         layer.setStyle({
             fillColor: "green",
             color: "green"
         });
     });
 }
-
+function resetAllElementsStyle() {
+    elements.forEach(function (element, key) {
+        setElementDefaultStyle(element);
+    });
+}
 function loadData() {
     $.ajax({
         url: '/api/objects',
@@ -46,29 +51,23 @@ function loadData() {
         success: function (data) {
             data.forEach(function (obj) {
                 var geoJson = JSON.parse(obj.geoData);
-                var marker = L.geoJSON(geoJson, {
+                var element = L.geoJSON(geoJson, {
                     pointToLayer: function (feature, latlng) {
-                        var markerColor =  'green';
                         var marker = L.circleMarker(latlng, {
                             radius: 8,
-                            fillColor: markerColor,
-                            color: markerColor,
                             weight: 1,
                             opacity: 1,
                             fillOpacity: 0.6
                         });
                         return marker;
                     }
-                }).addTo(map).on('click', function () {
-                    highlightObject(obj.id);
+                });
+                setElementDefaultStyle(element);
+                element.addTo(map).on('click', function () {
+                    highlightObjectRelations(obj.id);
                 });
 
-                setDefaultStyle(marker);
-                // Сохраняем маркер в массив
-                markers.push({
-                    marker: marker,
-                    id: obj.id // Храним Id объекта для фильтрации
-                });
+                    elements.set(obj.id, element);
             });
         },
         error: function () {
@@ -78,29 +77,30 @@ function loadData() {
 }
 
 function highlightObject(objectId) {
+    if (!elements.has(objectId)) return;
+    var element = elements.get(objectId);
+    element.eachLayer(function (layer) {
+        layer.setStyle({
+            fillColor: "purple",
+            color: "purple"
+        });
+    });
+}
+
+function highlightObjectRelations(objectId) {
+    resetAllElementsStyle();
+    highlightObject(objectId);
     $.ajax({
         url: '/api/objects/' + objectId + '/related', // API для получения связанных объектов
         method: 'GET',
         success: function (relatedObjects) {
-            relatedObjects.push(objectId);
-            markers.forEach(function (item) {
-                setDefaultStyle(item.marker);
-                relatedObjects.forEach(function (relatedObjectId) {
-
-                    if (item.id === relatedObjectId) {
-                        item.marker.eachLayer(function (layer) {
-                            layer.setStyle({
-                                fillColor: "purple",
-                                color: "purple"
-                            });
-                        });
-                    }
-                });
+            relatedObjects.forEach(function (relatedObjectId) {
+                highlightObject(relatedObjectId);
             });
         }
     });
 }
 
-$(document).ready(function () {
+$(function () {
     loadData();
 });

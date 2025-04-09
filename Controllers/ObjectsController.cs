@@ -9,7 +9,7 @@ namespace GeoApp.Controllers
 
         public ObjectsController(IDbHelperService dbHelperService)
         {
-            _dbHelperService = dbHelperService ?? throw new ArgumentNullException(nameof(dbHelperService));
+            _dbHelperService = dbHelperService;
         }
 
         [HttpGet("/api/objects")]

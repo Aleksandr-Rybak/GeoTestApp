@@ -9,7 +9,7 @@ public class HomeController : Controller
 
     public HomeController(ICsvHelperService csvHelperService)
     {
-        _csvHelperService = csvHelperService ?? throw new ArgumentNullException(nameof(csvHelperService));
+        _csvHelperService = csvHelperService;
     }
 
     public IActionResult Index()
