@@ -1,14 +1,15 @@
+using GeoApp.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GeoApp.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly DbHelperService _dbHelperService;
+    private readonly ICsvHelperService _csvHelperService;
 
-    public HomeController(DbHelperService dbHelperService)
+    public HomeController(ICsvHelperService csvHelperService)
     {
-        _dbHelperService = dbHelperService;
+        _csvHelperService = csvHelperService ?? throw new ArgumentNullException(nameof(csvHelperService));
     }
 
     public IActionResult Index()
@@ -25,7 +26,7 @@ public class HomeController : Controller
             csvFile.CopyTo(stream);
         }
 
-        _dbHelperService.ImportDataFromCsv(path);
+        _csvHelperService.ImportDataFromCsv(path);
 
         return Ok();
     }

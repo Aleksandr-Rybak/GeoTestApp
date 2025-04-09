@@ -21,15 +21,23 @@ $('#uploadForm').on('submit', function (e) {
         contentType: false,
         processData: false,
         success: function (response) {
-            alert('Data load sucessfully!');
+            alert('File loaded successfully!');
             $('#uploadPopup').modal('hide');
             loadData();
         },
         error: function () {
-            alert('Have exception download');
+            alert('Upload exception');
         }
     });
 });
+function setDefaultStyle(marker) {
+    marker.eachLayer(function (layer) {
+        layer.setStyle({
+            fillColor: "green",
+            color: "green"
+        });
+    });
+}
 
 function loadData() {
     $.ajax({
@@ -55,12 +63,7 @@ function loadData() {
                     highlightObject(obj.id);
                 });
 
-                marker.eachLayer(function (layer) {
-                    layer.setStyle({
-                        fillColor: "green",
-                        color: "green"
-                    });
-                });
+                setDefaultStyle(marker);
                 // Сохраняем маркер в массив
                 markers.push({
                     marker: marker,
@@ -69,7 +72,7 @@ function loadData() {
             });
         },
         error: function () {
-            alert('Have exception get data');
+            alert('Error while receiving data');
         }
     });
 }
@@ -81,14 +84,9 @@ function highlightObject(objectId) {
         success: function (relatedObjects) {
             relatedObjects.push(objectId);
             markers.forEach(function (item) {
-                item.marker.eachLayer(function (layer) {
-                    layer.setStyle({
-                        fillColor: "green",
-                        color: "green"
-                    });
-                });
-            relatedObjects.forEach(function (relatedObjectId) {
-                
+                setDefaultStyle(item.marker);
+                relatedObjects.forEach(function (relatedObjectId) {
+
                     if (item.id === relatedObjectId) {
                         item.marker.eachLayer(function (layer) {
                             layer.setStyle({
@@ -102,6 +100,7 @@ function highlightObject(objectId) {
         }
     });
 }
+
 $(document).ready(function () {
     loadData();
 });

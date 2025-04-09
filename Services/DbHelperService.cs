@@ -1,42 +1,22 @@
 ﻿using GeoApp.Models;
+using Microsoft.Extensions.Configuration;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Npgsql;
 
-namespace GeoApp
+namespace GeoApp.Services
 {
-    public class DbHelperService
+    public class DbHelperService(IConfiguration configuration) : IDbHelperService
     {
-        private readonly string _connectionString;
-
-        public DbHelperService(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("DbConnection");
-        }
-
-        public void ImportDataFromCsv(string csvFilePath)
-        {
-            var csvLines = File.ReadAllLines(csvFilePath);
-            foreach (var line in csvLines)
-            {
-                var columns = line.Split('\t');
-                var id = Guid.Parse(columns[0]);
-                var number = columns[1];
-                var type = int.Parse(columns[2]);
-                var geoJson = columns[3]?.Replace("\"\"", "\"").Replace("'", "");
-                var reader = new GeoJsonReader();
-                Geometry geometry = reader.Read<Geometry>(geoJson);
-                SaveObject(id, number, type, geometry);
-            }
-        }
-
-        private void SaveObject(Guid id, string number, int type, Geometry geometry)
+        private readonly string _connectionString = configuration.GetConnectionString("DbConnection");
+        
+        public void SaveObject(Guid id, string number, int type, Geometry geometry)
         {
             var relatedIds = new List<Guid>();
             using (var connection = new NpgsqlConnection(_connectionString))
             {
                 connection.Open();
-                var writer = new NetTopologySuite.IO.WKTWriter();
+                var writer = new WKTWriter();
                 string wGeometry = writer.Write(geometry);
                 // Insert into objects table
                 using (var command =
@@ -65,18 +45,18 @@ namespace GeoApp
             using (var command = new NpgsqlCommand(
                        @"SELECT id FROM objects WHERE  ST_Intersects(geodata, ST_GeomFromText(@geo, 4326))
                                             AND id != @currentObjectId", connection))
+            {
+                command.Parameters.AddWithValue("geo", geoJson);
+                command.Parameters.AddWithValue("currentObjectId", currentObjectId);
+
+                var reader = command.ExecuteReader();
+                while (reader.Read())
                 {
-                    command.Parameters.AddWithValue("geo", geoJson);
-                    command.Parameters.AddWithValue("currentObjectId", currentObjectId);
-
-                    var reader = command.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        relatedIds.Add(reader.GetGuid(0));
-                    }
+                    relatedIds.Add(reader.GetGuid(0));
                 }
+            }
 
-                return relatedIds;
+            return relatedIds;
         }
 
         private void InsertRelation(Guid objectId, List<Guid> relatedObjectIds)

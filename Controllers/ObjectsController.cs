@@ -1,14 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using GeoApp.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace GeoApp.Controllers
 {
     public class ObjectsController : Controller
     {
-        private readonly DbHelperService _dbHelperService;
+        private readonly IDbHelperService _dbHelperService;
 
-        public ObjectsController(DbHelperService dbHelperService)
+        public ObjectsController(IDbHelperService dbHelperService)
         {
-            _dbHelperService = dbHelperService;
+            _dbHelperService = dbHelperService ?? throw new ArgumentNullException(nameof(dbHelperService));
         }
 
         [HttpGet("/api/objects")]

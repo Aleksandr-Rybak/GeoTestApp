@@ -1,9 +1,10 @@
-using GeoApp;
+using GeoApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddTransient<DbHelperService>();
+builder.Services.AddTransient<IDbHelperService,DbHelperService>();
+builder.Services.AddTransient<ICsvHelperService,CsvHelperService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
