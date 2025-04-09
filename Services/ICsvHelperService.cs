@@ -2,6 +2,6 @@
 {
     public interface ICsvHelperService
     {
-        void ImportDataFromCsv(string csvFilePath);
+        void ImportDataFromCsv(Stream stream);
     }
 }

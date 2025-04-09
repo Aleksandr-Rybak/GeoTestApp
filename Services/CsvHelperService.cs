@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
+using System.Text;
 
 namespace GeoApp.Services
 {
@@ -8,19 +9,23 @@ namespace GeoApp.Services
     {
         private readonly IDbHelperService _dbHelperService = dbHelperService;
 
-        public void ImportDataFromCsv(string csvFilePath)
+        public void ImportDataFromCsv(Stream stream)
         {
-            var csvLines = File.ReadAllLines(csvFilePath);
-            foreach (var line in csvLines)
+            using (var reader = new StreamReader(stream, Encoding.UTF8))
             {
-                var columns = line.Split('\t');
-                var id = Guid.Parse(columns[0]);
-                var number = columns[1];
-                var type = int.Parse(columns[2]);
-                var geoJson = columns[3]?.Replace("\"\"", "\"").Replace("'", "");
-                var reader = new GeoJsonReader();
-                Geometry geometry = reader.Read<Geometry>(geoJson);
-                _dbHelperService.SaveObject(id, number, type, geometry);
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    // Обработка строки CSV
+                    var columns = line.Split('\t');
+                    var id = Guid.Parse(columns[0]);
+                    var number = columns[1];
+                    var type = int.Parse(columns[2]);
+                    var geoJson = columns[3]?.Replace("\"\"", "\"").Replace("'", "");
+                    var readerGeo = new GeoJsonReader();
+                    Geometry geometry = readerGeo.Read<Geometry>(geoJson);
+                    _dbHelperService.SaveObject(id, number, type, geometry);
+                }
             }
         }
     }

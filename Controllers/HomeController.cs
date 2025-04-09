@@ -20,14 +20,7 @@ public class HomeController : Controller
     [HttpPost]
     public async Task<IActionResult> UploadData(IFormFile csvFile)
     {
-        var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Files", csvFile.FileName);
-        using (var stream = new FileStream(path, FileMode.Create))
-        {
-            csvFile.CopyTo(stream);
-        }
-
-        _csvHelperService.ImportDataFromCsv(path);
-
+        _csvHelperService.ImportDataFromCsv(csvFile.OpenReadStream());
         return Ok();
     }
 }
