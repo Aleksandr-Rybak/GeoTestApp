@@ -1,0 +1,32 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <div id="map" style="height: 500px;">
+        <button class="btn btn-primary" id="uploadButton" onclick="openUploadPopup()" style="position:absolute; top:10px; right:10px;z-index:10000">Загрузить данные</button>
+    </div>
+    <div id="uploadPopup" class="modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Загрузить данные (CSV)</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeUploadPopup()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <input type="file" id="csvFile" name="csvFile" accept=".csv" class="form-control"/>
+                        <button type="submit" class="btn btn-success mt-3">Загрузить</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script src="~/js/index.js"></script>
+    }
+
+</div>

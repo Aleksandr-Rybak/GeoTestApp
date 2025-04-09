@@ -1,0 +1,15 @@
+CREATE EXTENSION postgis;
+
+CREATE TABLE public.objects (
+	id uuid NOT NULL,
+	"number" varchar(36) NULL,
+	"type" int4 NULL,
+	geodata public.geometry NULL,
+	CONSTRAINT objects_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE public.object_relations (
+	object_id uuid NOT NULL,
+	related_object_id uuid NOT NULL,
+	CONSTRAINT object_relations_pkey PRIMARY KEY (object_id, related_object_id)
+);
